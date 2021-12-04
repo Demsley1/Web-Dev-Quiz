@@ -1,47 +1,8 @@
-/*function timer() {
-    var countDownTime = (getHours() + ((1000*60)*60));
-    var x = setInterval(function() {
-        var now = new getTime();
-
-    }
-}*/
-
-function startQuiz() {
-    var countDownTimer = timer();
-
-
-}
-
-function buildQuiz() {
-    var output = [];
-    testQuestions.forEach(
-        (currentQuestion, questionNumber) => {
-            const quizAnswers = [];
-
-            for(letter in  currentQuestion.answers){
-                quizAnswers.push(
-                    `<label>
-                        <input type="button" name="question${questionNumber}" value="${letter}" />
-                        ${letter} :
-                        ${currentQuestion.answers[letter]}
-                    </label>`
-                );
-            }
-            output.push(
-                `<div class="question"> ${currentQuestion.question} </div>
-                <div class="answers"> ${quizAnswers.join('')} </div>`
-            );
-        }
-    );
-    quizContainer.innerHTML = output.join('');
-}
-
-function showResults() {}
-
-const quizContainer = document.getElementById("quiz-framework");
+const quizContainer = document.getElementById("quizFrame");
 const resultConatiner = document.getElementById("results");
 const submitButton = document.getElementById("submit");
 const startButton = document.getElementById("start");
+const timeEl = document.getElementById("timer")
 const testQuestions = [ 
     {
         question : 'Which of the following is true about variable naming conventions in JavaScript?',
@@ -152,7 +113,58 @@ const testQuestions = [
 
 ]
 
-buildQuiz();
+const timer = function() {
+    let i = 101;    
+    var myTime = setInterval(function(){i--; timeEl.innerHTML= ""; $("#timer").append( "Time:  " + i );}, 1000)
+    setTimeout(function(){clearInterval(myTime)}, ((1000 * 10) * 10))    
+}
 
-startButton.addEventListener('click', startQuiz);
+const buildQuiz = num => {
+    let i = num
+    const quiz = testQuestions[i];
+
+    var writeQuiz = () => {
+        quizContainer.innerHTML = " "
+
+        var questions = quiz.question 
+        var answers = quiz.answers
+    
+        var quizQuest = $("<h3>").text(questions).add("</br>")
+        $(quizContainer).append(quizQuest)
+        for (x in answers){
+            var newAns = $("<div>").text(answers[x])
+            var newBtn = $("<button>").text(x).attr('id', "answer").addClass("btn-dark");
+            $(newAns).append(newBtn)
+            $(quizContainer).append(newAns)
+    
+        }
+
+        const answerButton = document.querySelectorAll("#answer");
+
+        const subAnswer = () => {
+            console.log(x)
+            if(x == quiz.correctAnswer){
+                console.log("you picked correct")
+            }
+            else{
+                alert("wrong");
+            }
+    
+            i++ 
+            buildQuiz(i)
+        }
+        $(answerButton).click(subAnswer)
+    }
+    writeQuiz();
+} 
+
+const startQuiz = () => {
+     timer(); 
+     buildQuiz(0);
+}
+
+const showResults = () => {}
+
+
+startButton.addEventListener('click',startQuiz);
 submitButton.addEventListener('click', showResults);
