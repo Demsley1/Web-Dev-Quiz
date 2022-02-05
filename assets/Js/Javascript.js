@@ -1,6 +1,5 @@
 const quizContainer = document.getElementById("quizFrame");
-const resultConatiner = document.getElementById("results");
-const submitButton = document.getElementById("submit");
+const scoreBtn = document.getElementById("scores");
 const startButton = document.getElementById("start");
 const timeEl = document.getElementById("timer")
 const testQuestions = [ 
@@ -166,16 +165,54 @@ const showResults = () => {
 
     const resultText = 
     ` 
-    <div>
-        <h3> Your Score: ${score}</h3></br>
+    <form class="resultForm">
+        <div>
+            <h3> Your Final Score: ${score}</h3>
+        </div></br>
 
-        <p>Other High Scores: </p>
-        <ul class="high-scores"></ul>
-    </div>
+        <div>
+            <label class="form-label" for="initials-text">Type Your Initials:</label>
+            <input type="text" name="initials-text" class="initials form-control" id="initials-text"/>
+            <button class="btn btn-outline-success" id="saveScore">Save Score</button>
+        </div>
+        
+    </form>
     `
 
     quizContainer.innerHTML = resultText
+
+    function saveResult(e){
+        e.preventDefault();
+
+        const initials = document.getElementById("initials-text").value;
+        
+        var savedScores = JSON.parse(localStorage.getItem("HighScore"))
+        if(!savedScores){
+            savedScores = []
+        }
+        savedScores.push({ initials, score })
+        localStorage.setItem("HighScore", JSON.stringify(savedScores));
+
+        function results(values){
+            return `
+                ${values.filter((value) => value)
+                .map(({initials, score }) => {
+                    return `<li>${initials}:  ${score}</li> `;
+                }).join('')
+            }`
+        }
+
+        quizContainer.innerHTML = 
+        `
+        <h2> Your High Scores! </h2></br>
+        <ol>
+            ${results(savedScores)}
+        </ol>
+        `
+        
+    }
+    document.querySelector(".resultForm").addEventListener("submit", saveResult)
 }
 
 startButton.addEventListener('click',startQuiz);
-submitButton.addEventListener('click', showResults);
+scoreBtn.addEventListener('click', showResults);
