@@ -115,10 +115,9 @@ const testQuestions = [
 let i = 9;
 let quiz = testQuestions[i];
 
-const timer = function() {
-    let i = 101;    
-    var myTime = setInterval(function(){i--; timeEl.innerHTML= ""; $(timeEl).append( "Time:  " + i )}, 1000)
-    setTimeout(function(){clearInterval(myTime)}, ((1000 * 10) * 10))  
+const timer = function(i) {  
+    var myTime = setInterval(function(){if(i > 0){i--}; timeEl.innerHTML= ""; $(timeEl).append( "Time:  " + i )}, 1000)
+    setTimeout(function(){clearInterval(myTime); showResults()}, ((1000 * 11) * 10))  
 }
 
 const buildQuiz = () => {
@@ -128,7 +127,7 @@ const buildQuiz = () => {
         var questions = quiz.question 
         var answers = quiz.answers
          
-        var quizQuest = $("<h3>").text(questions).add("</br>")
+        var quizQuest = $("<h1>").text(questions).add("</br>")
         $(quizContainer).append(quizQuest)
         for (x in answers){
             var newAns = $("<div>").text(answers[x])
@@ -149,19 +148,19 @@ const subAnswer = (clickedBtn) => {
         quiz = testQuestions[i]
         return buildQuiz();
     } else {
-        alert("You are incorrect");
         return buildQuiz();
     }
 }
 
 const startQuiz = () => {
-     timer(); 
+     timer(101); 
      buildQuiz();
 }
 
 const showResults = () => {
     let currentTime = timeEl.textContent;
     const score = currentTime.split("").slice(7).join("");
+    
 
     const resultText = 
     ` 
@@ -178,41 +177,57 @@ const showResults = () => {
         
     </form>
     `
-
     quizContainer.innerHTML = resultText
 
-    function saveResult(e){
-        e.preventDefault();
+    function saveResult(event){
+        event.preventDefault();    
 
-        const initials = document.getElementById("initials-text").value;
-        
+        const initials = document.getElementById("initials-text").value.trim();
+
         var savedScores = JSON.parse(localStorage.getItem("HighScore"))
         if(!savedScores){
             savedScores = []
         }
-        savedScores.push({ initials, score })
-        localStorage.setItem("HighScore", JSON.stringify(savedScores));
-
-        function results(values){
-            return `
-                ${values.filter((value) => value)
-                .map(({initials, score }) => {
-                    return `<li>${initials}:  ${score}</li> `;
-                }).join('')
-            }`
+        if(initials && score){
+            savedScores.push({ initials, score })
         }
-
-        quizContainer.innerHTML = 
-        `
-        <h2> Your High Scores! </h2></br>
-        <ol>
-            ${results(savedScores)}
-        </ol>
-        `
-        
+        localStorage.setItem("HighScore", JSON.stringify(savedScores));
+        displayResults();
     }
     document.querySelector(".resultForm").addEventListener("submit", saveResult)
 }
 
+function displayResults(){
+    const savedScores = JSON.parse(localStorage.getItem("HighScore"))
+    
+    function results(values){
+        return `
+            ${values.filter((value) => value)
+            .map(({initials, score }) => {
+                return `<li>${initials}:  ${score}</li> `;
+            }).join('')
+        }`
+    }
+
+    quizContainer.innerHTML = 
+    `
+    <h2> Your High Scores! </h2></br>
+    <ol>
+        ${results(savedScores)}
+    </ol></br>
+    <div class="d-flex">
+        <button type="button" class="btn btn-outline-dark" id="home">Restart Quiz</button>
+        <button type="button" class="btn mx-5 btn-outline-danger" id="reset">Clear High Scores</button>
+    </div>
+    `
+
+    document.getElementById("home").addEventListener("click", (e) => {e.preventDefault(); document.location.reload();})
+    document.getElementById("reset").addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("HighScore");
+        displayResults();
+    });
+}
+
 startButton.addEventListener('click',startQuiz);
-scoreBtn.addEventListener('click', showResults);
+scoreBtn.addEventListener('click', displayResults);
