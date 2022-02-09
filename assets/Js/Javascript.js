@@ -2,6 +2,7 @@ const quizContainer = document.getElementById("quizFrame");
 const scoreBtn = document.getElementById("scores");
 const startButton = document.getElementById("start");
 const timeEl = document.getElementById("timer")
+// array of objects that holds quiz questions and answers
 const testQuestions = [ 
     {
         question : 'Which of the following is true about variable naming conventions in JavaScript?',
@@ -112,56 +113,81 @@ const testQuestions = [
 
 ]
 
-let i = 9;
-let quiz = testQuestions[i];
-
-const timer = function(i) {  
-    var myTime = setInterval(function(){if(i > 0){i--}; timeEl.innerHTML= ""; $(timeEl).append( "Time:  " + i )}, 1000)
-    setTimeout(function(){clearInterval(myTime); showResults()}, ((1000 * 11) * 10))  
-}
-
-const buildQuiz = () => {
-    var writeQuiz = () => {
-        quizContainer.innerHTML = " "
-
-        var questions = quiz.question 
-        var answers = quiz.answers
-         
-        var quizQuest = $("<h1>").text(questions).add("</br>")
-        $(quizContainer).append(quizQuest)
-        for (x in answers){
-            var newAns = $("<div>").text(answers[x])
-            var newBtn = $("<button>").text(x).attr("onclick", `subAnswer("${x}")`).addClass("btn btn-outline-dark");
-            $(newAns).prepend(newBtn)
-            $(quizContainer).append(newAns)
-        }
-    }
-    writeQuiz();
-} 
-
-const subAnswer = (clickedBtn) => {
-    if(clickedBtn == quiz.correctAnswer) {
-        i == i++
-        if( i == 10){
-            return showResults()
-        }
-        quiz = testQuestions[i]
-        return buildQuiz();
-    } else {
-        return buildQuiz();
-    }
-}
-
+// function to start the quiz
 const startQuiz = () => {
-     timer(101); 
-     buildQuiz();
+    let i = 9;
+    // variable that selects the question object at each index of the array
+    let quiz = testQuestions[i];
+    // gloobal variable that controls the time beind counted down by the timer interval
+    var time = 101;
+    
+    // timer that decrements the time variable at a set rate of 1 second = 1000, if the time reaches zero call end of quiz and clear interval
+    const timer = setInterval(function(){ 
+        --time;
+        timeEl.innerHTML = "Time:  " + time 
+        if(distance <= 0){
+            clearInterval(timer)
+            timeEl.innerHTML = "";
+            return showResults();
+        }
+    }, 1000)
+
+    // main function to write the quiz to the page and set the values of each answer button
+    const buildQuiz = () => {
+        var writeQuiz = () => {
+            quizContainer.innerHTML = " "
+
+            var questions = quiz.question 
+            var answers = quiz.answers
+            
+            
+            var quizQuest = $("<h1>").text(questions).add("</br>")
+            $(quizContainer).append(quizQuest)
+            for (x in answers){
+                var newAns = $("<div>").text(answers[x])
+                var newBtn = $("<button>").text(x).attr({id: "answer-btn", value: `${x}`}).addClass("btn btn-outline-dark");
+                $(newAns).prepend(newBtn)
+                $(quizContainer).append(newAns)
+            }
+
+            document.querySelectorAll("#answer-btn").forEach(x => {
+                x.addEventListener("click", checkAnswer)
+            })
+        }
+        writeQuiz();
+    } 
+    buildQuiz();
+
+    // funciton that checks if an answer is correct, incorrect, and if the test has any more questions to run through
+    function checkAnswer(event) {
+        var clickedBtn = event.target.value
+        if(clickedBtn == quiz.correctAnswer) {
+                i == i++
+                if(i == 10){
+                    clearInterval(timer)
+                    return showResults()
+                }
+                quiz = testQuestions[i]
+                return buildQuiz();
+            } else {    
+                alert("wrong answer")
+                time -= 5;
+                i == i++
+                quiz = testQuestions[i]
+                if(i == 10){
+                    clearInterval(timer);
+                    return showResults()
+                }
+                return buildQuiz();
+            }
+    }
 }
 
+// function that shows the score you got for the current quiz, and a form that asks you to provide yuor initials to save your score by.
 const showResults = () => {
     let currentTime = timeEl.textContent;
     const score = currentTime.split("").slice(7).join("");
     
-
     const resultText = 
     ` 
     <form class="resultForm">
@@ -171,19 +197,23 @@ const showResults = () => {
 
         <div>
             <label class="form-label" for="initials-text">Type Your Initials:</label>
-            <input type="text" name="initials-text" class="initials form-control" id="initials-text"/>
+            <input type="text" name="initials-text" placeholder="Initials" class="initials form-control" id="initials-text"/>
             <button class="btn btn-outline-success" id="saveScore">Save Score</button>
         </div>
         
     </form>
     `
     quizContainer.innerHTML = resultText
+    timeEl.innerHTML = ""
 
+    // function to save the intials, and score to the local storage api
     function saveResult(event){
         event.preventDefault();    
 
+        // gets the value for the initals and trims away empty string space
         const initials = document.getElementById("initials-text").value.trim();
 
+        // get the saved scores array from the local storage if it already exists, then adds the new object of scores and intials if the user provided both of these values, and sends it back to the server as a new array
         var savedScores = JSON.parse(localStorage.getItem("HighScore"))
         if(!savedScores){
             savedScores = []
@@ -197,9 +227,11 @@ const showResults = () => {
     document.querySelector(".resultForm").addEventListener("submit", saveResult)
 }
 
+// displays the all saved scores that exist on a users local storage
 function displayResults(){
     const savedScores = JSON.parse(localStorage.getItem("HighScore"))
     
+    // filters the values of the local storage array and objects
     function results(values){
         return `
             ${values.filter((value) => value)
@@ -221,6 +253,7 @@ function displayResults(){
     </div>
     `
 
+    // button handlers for th view scores page, one to restart the quiz and one to clear the local storage of all quiz results
     document.getElementById("home").addEventListener("click", (e) => {e.preventDefault(); document.location.reload();})
     document.getElementById("reset").addEventListener("click", (e) => {
         e.preventDefault();
@@ -229,5 +262,6 @@ function displayResults(){
     });
 }
 
+// button handlers to start quiz game, and to show all saved results
 startButton.addEventListener('click',startQuiz);
 scoreBtn.addEventListener('click', displayResults);
