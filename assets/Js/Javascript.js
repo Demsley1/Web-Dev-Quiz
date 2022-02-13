@@ -115,71 +115,71 @@ const testQuestions = [
 
 // function to start the quiz
 const startQuiz = () => {
-    let i = 9;
+    let i = 0;
     // variable that selects the question object at each index of the array
     let quiz = testQuestions[i];
     // gloobal variable that controls the time beind counted down by the timer interval
     var time = 101;
-    
     // timer that decrements the time variable at a set rate of 1 second = 1000, if the time reaches zero call end of quiz and clear interval
     const timer = setInterval(function(){ 
         --time;
-        timeEl.innerHTML = "Time:  " + time 
-        if(distance <= 0){
+        timeEl.innerHTML = "Time:  " + time;
+        if(time <= 0){
             clearInterval(timer)
             timeEl.innerHTML = "";
             return showResults();
-        }
-    }, 1000)
+        };
+        }, 1000)
 
+    
     // main function to write the quiz to the page and set the values of each answer button
     const buildQuiz = () => {
-        var writeQuiz = () => {
-            quizContainer.innerHTML = " "
+        
+        function writeQuiz() {
+        quizContainer.innerHTML = " "
 
-            var questions = quiz.question 
-            var answers = quiz.answers
-            
-            
-            var quizQuest = $("<h1>").text(questions).add("</br>")
-            $(quizContainer).append(quizQuest)
-            for (x in answers){
-                var newAns = $("<div>").text(answers[x])
-                var newBtn = $("<button>").text(x).attr({id: "answer-btn", value: `${x}`}).addClass("btn btn-outline-dark");
-                $(newAns).prepend(newBtn)
-                $(quizContainer).append(newAns)
-            }
+        var questions = quiz.question 
+        var answers = quiz.answers
+                      
+        var quizQuest = $("<h1>").text(questions).add("</br>")
+        $(quizContainer).append(quizQuest)
+        for (x in answers){
+            var newAns = $("<div>").text(answers[x])
+            var newBtn = $("<button>").text(x).attr({id: "answer-btn", value: `${x}`}).addClass("btn btn-outline-dark");
+            $(newAns).prepend(newBtn)
+            $(quizContainer).append(newAns)
+        }
 
-            document.querySelectorAll("#answer-btn").forEach(x => {
-                x.addEventListener("click", checkAnswer)
-            })
+        document.querySelectorAll("#answer-btn").forEach(x => {
+            x.addEventListener("click", checkAnswer)
+        })
         }
         writeQuiz();
     } 
     buildQuiz();
 
-    // funciton that checks if an answer is correct, incorrect, and if the test has any more questions to run through
+    // function that checks if an answer is correct, incorrect, and if the test has any more questions to run through
     function checkAnswer(event) {
         var clickedBtn = event.target.value
         if(clickedBtn == quiz.correctAnswer) {
-                i == i++
-                if(i == 10){
-                    clearInterval(timer)
-                    return showResults()
-                }
-                quiz = testQuestions[i]
-                return buildQuiz();
-            } else {    
-                alert("wrong answer")
-                time -= 5;
-                i == i++
-                quiz = testQuestions[i]
-                if(i == 10){
-                    clearInterval(timer);
-                    return showResults()
-                }
-                return buildQuiz();
+            i == i++
+            if(i === 10){
+                clearInterval(timer);
+                return showResults(); 
             }
+            quiz = testQuestions[i]
+            return buildQuiz();
+        } else {    
+            alert("wrong answer")
+            time -= 5;
+            i == i++
+            if(i === 10){
+                clearInterval(timer);
+                return showResults(); 
+            }
+            quiz = testQuestions[i]
+            return buildQuiz();
+        }
     }
 }
 
@@ -229,29 +229,42 @@ const showResults = () => {
 
 // displays the all saved scores that exist on a users local storage
 function displayResults(){
-    const savedScores = JSON.parse(localStorage.getItem("HighScore"))
-    
+    // get any saved score results from local storage (if they exist)
+    const savedScores = JSON.parse(localStorage.getItem("HighScore"));
+
+    // display quiz results default page
+    quizContainer.innerHTML = 
+    `
+    <h2 class="text-center"> Your High Scores! </h2></br>
+    <div id="display-list">
+    </div>
+    <div class="d-flex">
+        <button type="button" class="btn btn-outline-dark" id="home">Restart Quiz</button>
+        <button type="button" class="btn btn-outline-danger mx-5" id="reset">Clear High Scores</button>
+    </div>
+    `
+
+    // check if saveScores has a value to iterate through
+    if(savedScores){
     // filters the values of the local storage array and objects
     function results(values){
         return `
             ${values.filter((value) => value)
             .map(({initials, score }) => {
-                return `<li>${initials}:  ${score}</li> `;
+                return `<li class="list-group-item">${initials}:  ${score}</li> `;
             }).join('')
         }`
     }
 
-    quizContainer.innerHTML = 
-    `
-    <h2> Your High Scores! </h2></br>
-    <ol>
+    // display the list in the DOM
+    $("#display-list").html(`
+    <ol class="list-group">
         ${results(savedScores)}
     </ol></br>
-    <div class="d-flex">
-        <button type="button" class="btn btn-outline-dark" id="home">Restart Quiz</button>
-        <button type="button" class="btn mx-5 btn-outline-danger" id="reset">Clear High Scores</button>
-    </div>
-    `
+    `)
+    }
+
+    
 
     // button handlers for th view scores page, one to restart the quiz and one to clear the local storage of all quiz results
     document.getElementById("home").addEventListener("click", (e) => {e.preventDefault(); document.location.reload();})
