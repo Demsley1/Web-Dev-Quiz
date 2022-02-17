@@ -115,6 +115,7 @@ const testQuestions = [
 
 // function to start the quiz
 const startQuiz = () => {
+    scoreBtn.style.display = "none";
     let i = 0;
     // variable that selects the question object at each index of the array
     let quiz = testQuestions[i];
@@ -185,6 +186,7 @@ const startQuiz = () => {
 
 // function that shows the score you got for the current quiz, and a form that asks you to provide yuor initials to save your score by.
 const showResults = () => {
+    scoreBtn.style.display = "block";
     let currentTime = timeEl.textContent;
     const score = currentTime.split("").slice(7).join("");
     
